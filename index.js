@@ -42,6 +42,7 @@ function mainMenu() {
                     addDepartment();
                     break;
                 case 'Add a Role':
+                    addRole();
                     break;
                 case 'Add an Employee':
                     break;
@@ -98,6 +99,64 @@ function addDepartment() {
                 mainMenu();
             });
         })
+
+}
+
+function addRole() {
+    let departments = [];
+
+    db.query('SELECT * FROM departments', (err, results) => {
+        if (err) {
+            console.log(err);
+        }
+        
+        departments = results.map(({
+            name
+        }) => ({
+            name
+        }));
+        
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    name: 'title',
+                    message: 'Please enter the title of the new role:'
+                },
+                {
+                    type: 'input',
+                    name: 'salary',
+                    message: 'Please enter the new role\'s salary:'
+                },
+                {
+                    type: 'list',
+                    name: 'department',
+                    message: 'Choose a department for the new role:',
+                    choices: departments
+                }
+            ])
+            .then((data) => {
+                console.log(data.department);
+                let departmentIndex;
+                for (let i = 0; i < departments.length; i++)
+                {
+                    if (departments[i].name === data.department) {
+                        departmentIndex = i+1;
+                    }
+                }
+                
+                console.log(departmentIndex);
+                db.query(`INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`, [data.title, data.salary, departmentIndex], (err, results) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log('Role added successfully.')
+                    mainMenu();
+                });
+            })
+    })
+
+    
 
 }
 
