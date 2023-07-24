@@ -54,6 +54,7 @@ function mainMenu() {
             }
         })
 }
+
 function viewDepartments() {
     db.query('SELECT name FROM departments', (err, results) => {
         if (err) {
@@ -139,7 +140,6 @@ function addRole() {
                 }
             ])
             .then((data) => {
-                console.log(data.department);
                 let departmentIndex;
                 for (let i = 0; i < departments.length; i++)
                 {
@@ -148,7 +148,6 @@ function addRole() {
                     }
                 }
                 
-                console.log(departmentIndex);
                 db.query(`INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`, [data.title, data.salary, departmentIndex], (err, results) => {
                     if (err) {
                         console.log(err);
@@ -161,7 +160,55 @@ function addRole() {
 }
 
 function addEmployee() {
+    let roles = [];
+    let employees = [];
 
+    db.query('SELECT * FROM roles', (err, results) => {
+        if (err) {
+            console.log(err);
+        }
+
+        roles = results.map(({
+            title
+        }) => ({
+            title
+        }));
+
+        // db.query('SELECT first_name, last_name FROM employees', (err, results) => {
+        //     if (err) {
+        //         console.log(err);
+        //     }
+
+        //     employees = results.map(({
+        //         first_name, last_name
+        //     }) => ({
+        //         first_name, last_name
+        //     }));
+        // })
+
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    name: 'firstName',
+                    message: 'Enter the new employee\'s first name:'
+                },
+                {
+                    type: 'input',
+                    name: 'lastName',
+                    message: 'Enter the new employee\'s last name:'
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: 'Choose the new employee\'s role:',
+                    choices: roles
+                }
+            ])
+            .then((data) => {
+
+            })
+    })
 }
 
 mainMenu();
