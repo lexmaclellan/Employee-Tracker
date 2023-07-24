@@ -10,6 +10,8 @@ const db = mysql.createConnection(
     }
 )
 
+console.log("EMPLOYEE TRACKER");
+
 function mainMenu() {
     inquirer
         .prompt([
