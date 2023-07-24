@@ -45,6 +45,7 @@ function mainMenu() {
                     addRole();
                     break;
                 case 'Add an Employee':
+                    addEmployee();
                     break;
                 case 'Update an Employee Role':
                     break;
@@ -52,7 +53,7 @@ function mainMenu() {
         })
 }
 function viewDepartments() {
-    db.query('SELECT * FROM departments', (err, results) => {
+    db.query('SELECT name FROM departments', (err, results) => {
         if (err) {
             console.log(err);
         }
@@ -62,7 +63,7 @@ function viewDepartments() {
 }
 
 function viewRoles() {
-    db.query('SELECT * FROM roles', (err, results) => {
+    db.query('SELECT roles.title, departments.name, roles.salary FROM roles JOIN departments ON roles.department_id = departments.id', (err, results) => {
         if (err) {
             console.log(err);
         }
@@ -72,7 +73,7 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    db.query('SELECT * FROM employees JOIN roles ON employees.role_id = roles.id', (err, results) => {
+    db.query('SELECT employees.first_name, employees.last_name, roles.title, departments.name, roles.salary FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.department_id = departments.id', (err, results) => {
         if (err) {
             console.log(err);
         }
@@ -155,8 +156,9 @@ function addRole() {
                 });
             })
     })
+}
 
-    
+function addEmployee() {
 
 }
 
