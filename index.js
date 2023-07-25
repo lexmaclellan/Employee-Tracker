@@ -51,6 +51,7 @@ function mainMenu() {
                     addEmployee();
                     break;
                 case 'Update an Employee Role':
+                    updateEmployee();
                     break;
             }
         })
@@ -242,6 +243,32 @@ function addEmployee() {
 
                 mainMenu();
             })
+    })
+}
+
+function updateEmployee() {
+    let employees = [];
+    
+    db.query('SELECT CONCAT(first_name, \' \', last_name) AS full_name FROM employees', (err, results) => {
+        if (err) {
+            console.log(err);
+        }
+
+        employees = results.map(({
+            full_name
+        }) => ({
+            full_name
+        }))
+
+        inquirer
+            .prompt([
+                {
+                    type: 'list',
+                    name: 'employee',
+                    message: 'Update which employee?',
+                    choices: employees
+                }
+            ])
     })
 }
 
