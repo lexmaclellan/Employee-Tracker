@@ -6,7 +6,8 @@ const db = mysql.createConnection(
         host: 'localhost',
         user: 'root',
         password: 'pass',
-        database: 'employee_tracker_db'
+        database: 'employee_tracker_db',
+        multipleStatements: true
     }
 )
 
@@ -148,7 +149,8 @@ function addRole() {
                     }
                 }
                 
-                db.query(`INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`, [data.title, data.salary, departmentIndex], (err, results) => {
+                db.query(`INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`,
+                        [data.title, data.salary, departmentIndex], (err, results) => {
                     if (err) {
                         console.log(err);
                     }
@@ -163,28 +165,23 @@ function addEmployee() {
     let roles = [];
     let employees = [];
 
-    db.query('SELECT * FROM roles', (err, results) => {
+    db.query('SELECT * FROM roles; SELECT CONCAT(first_name, \' \', last_name) FROM employees AS full_name;', (err, results) => {
         if (err) {
             console.log(err);
         }
-
-        roles = results.map(({
+        
+        roles = results[0].map(({
             title
         }) => ({
             title
         }));
-
-        // db.query('SELECT first_name, last_name FROM employees', (err, results) => {
-        //     if (err) {
-        //         console.log(err);
-        //     }
-
-        //     employees = results.map(({
-        //         first_name, last_name
-        //     }) => ({
-        //         first_name, last_name
-        //     }));
-        // })
+        console.log(roles);
+        employees = results[1].map(({
+            full_name
+        }) => ({
+            full_name
+        }));
+        console.log(employees);
 
         inquirer
             .prompt([
@@ -203,10 +200,48 @@ function addEmployee() {
                     name: 'role',
                     message: 'Choose the new employee\'s role:',
                     choices: roles
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    message: 'Who will manage the new employee?',
+                    choices: employees
                 }
             ])
             .then((data) => {
+                let roleIndex;
+                let managerIndex;
+                
+                if (data.manager === "No Manager") {
+                    managerIndex = null;
+                }
+                else {
+                    for (let i = 0; i < roleIndex.length; i++)
+                    {
+                        if (roles[i].title === data.role) {
+                            roleIndex = i+1;
+                        }
+                    }
 
+                    for (let i = 0; i < managerIndex.length; i++)
+                    {
+                        if (employees[i].full_name === data.firstName + " " + data.lastName)
+                        {
+                            managerIndex = i+1;
+                        }
+                    }  
+                }
+
+                db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`,
+                        [data.firstName, data.lastName, roleIndex, managerIndex], (err, results) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log('Employee added successfully.')
+                    mainMenu();
+                });
+
+                mainMenu();
             })
     })
 }
