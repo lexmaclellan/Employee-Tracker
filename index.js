@@ -58,7 +58,8 @@ function mainMenu() {
 }
 
 function viewDepartments() {
-    db.query('SELECT name FROM departments', (err, results) => {
+    const query = 'SELECT name FROM departments';
+    db.query(query, (err, results) => {
         if (err) {
             console.log(err);
         }
@@ -68,7 +69,11 @@ function viewDepartments() {
 }
 
 function viewRoles() {
-    db.query('SELECT roles.title, departments.name, roles.salary FROM roles JOIN departments ON roles.department_id = departments.id', (err, results) => {
+    const query = 'SELECT roles.title, departments.name, roles.salary ' +
+                  'FROM roles ' +
+                  'JOIN departments ON roles.department_id = departments.id';
+
+    db.query(query, (err, results) => {
         if (err) {
             console.log(err);
         }
@@ -78,7 +83,11 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    db.query('SELECT employees.first_name, employees.last_name, roles.title, departments.name, roles.salary FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.department_id = departments.id', (err, results) => {
+    const query = 'SELECT employees.first_name, employees.last_name, roles.title, departments.name, roles.salary ' +
+                  'FROM employees ' +
+                  'JOIN roles ON employees.role_id = roles.id ' +
+                  'JOIN departments ON roles.department_id = departments.id'
+    db.query(query, (err, results) => {
         if (err) {
             console.log(err);
         }
