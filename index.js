@@ -165,7 +165,7 @@ function addEmployee() {
     let roles = [];
     let employees = [];
 
-    db.query('SELECT * FROM roles; SELECT CONCAT(first_name, \' \', last_name) FROM employees AS full_name;', (err, results) => {
+    db.query('SELECT * FROM roles; SELECT CONCAT(first_name, \' \', last_name) AS full_name FROM employees;', (err, results) => {
         if (err) {
             console.log(err);
         }
@@ -175,13 +175,12 @@ function addEmployee() {
         }) => ({
             title
         }));
-        console.log(roles);
+        
         employees = results[1].map(({
             full_name
         }) => ({
             full_name
         }));
-        console.log(employees);
 
         inquirer
             .prompt([
