@@ -105,10 +105,7 @@ function addDepartment() {
         ])
         .then((data) => {
             const query = 'INSERT INTO departments (name) VALUES (?)';
-            const params = [];
-            params.push(data.department);
-
-            db.query(query, params, (err, results) => {
+            db.query(query, [data.department], (err, results) => {
                 if (err) {
                     console.log(err);
                 }
@@ -123,11 +120,10 @@ function addRole() {
     db.query('SELECT * FROM departments', (err, results) => {
         if (err) console.log(err);
         
-        const departments = results.map(({
-            id, name
-        }) => ({
-            id, name
-        }));
+        let departments = [];
+        for (let i = 0; i < results.length; i++) {
+            departments.push(results[i]);
+        }
         
         inquirer
             .prompt([
@@ -153,7 +149,7 @@ function addRole() {
                 for (let i = 0; i < departments.length; i++)
                 {
                     if (departments[i].name === data.department) {
-                        departmentIndex = i+1;
+                        departmentIndex = departments[i].id;
                     }
                 }
                 
@@ -169,20 +165,32 @@ function addRole() {
 }
 
 function addEmployee() {
-    db.query('SELECT * FROM roles; SELECT CONCAT(first_name, \' \', last_name) AS full_name FROM employees;', (err, results) => {
+    db.query('SELECT * FROM roles; SELECT id, CONCAT(first_name, \' \', last_name) AS full_name FROM employees;', (err, results) => {
         if (err) console.log(err);
         
-        const roles = results[0].map(({
-            title
-        }) => ({
-            title
-        }));
+        let roles = [];
+        for (let i = 0; i < results[0].length; i++) {
+            roles.push(results[0][i].title);
+        }
+
+        let employees = [];
+        for (let y = 0; y < results[1].length; y++) {
+            employees.push(results[1][y].full_name);
+        } 
+
+        // const roles = results[0].map(({
+        //     title
+        // }) => ({
+        //     title
+        // }));
+        // console.log(roles);
         
-        const employees = results[1].map(({
-            full_name
-        }) => ({
-            full_name
-        }));
+        // const employees = results[1].map(({
+        //     full_name
+        // }) => ({
+        //     full_name
+        // }));
+        // console.log(employees);
 
         inquirer
             .prompt([
