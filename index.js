@@ -81,10 +81,12 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    const query = 'SELECT employees.first_name, employees.last_name, roles.title, departments.name, roles.salary, employees.manager_id ' +
-                  'FROM employees ' +
-                  'JOIN roles ON employees.role_id = roles.id ' +
-                  'JOIN departments ON roles.department_id = departments.id'
+    const query = 'SELECT emp1.first_name, emp1.last_name, roles.title, departments.name, roles.salary, CONCAT(emp2.first_name, \' \', emp2.last_name) AS manager ' +
+                  'FROM employees emp1 ' +
+                  'JOIN roles ON emp1.role_id = roles.id ' +
+                  'JOIN departments ON roles.department_id = departments.id ' + 
+                  'LEFT JOIN employees emp2 ' +
+                  'ON emp1.manager_id = emp2.id'
     db.query(query, (err, results) => {
         if (err) {
             console.log(err);
