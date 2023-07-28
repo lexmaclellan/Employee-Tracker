@@ -232,8 +232,8 @@ function addEmployee() {
                         }
                     }
 
-                    const sql = 'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
-                    db.query(sql, [data.firstName, data.lastName, roleIndex, managerIndex], (err, results) => {
+                    const query = 'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
+                    db.query(query, [data.firstName, data.lastName, roleIndex, managerIndex], (err, results) => {
                         if (err) console.log(err);
 
                         console.log('Employee added successfully.');
@@ -242,80 +242,34 @@ function addEmployee() {
                 })
         })
     })
-
-    
-    //         .then((data) => {
-    //             let roleIndex;
-    //             let managerIndex;
-                
-    //             if (data.manager === "No Manager") {
-    //                 managerIndex = null;
-    //             }
-    //             else {
-    //                 for (let i = 0; i < roles.length; i++)
-    //                 {
-    //                     if (roles[i].title === data.role) {
-    //                         roleIndex = i+1;
-    //                     }
-    //                 }
-
-    //                 for (let i = 0; i < employees.length; i++)
-    //                 {
-    //                     if (employees[i].full_name === data.firstName + " " + data.lastName)
-    //                     {
-    //                         managerIndex = i+1;
-    //                     }
-    //                 }  
-    //             }
-
-    //             db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`,
-    //                     [data.firstName, data.lastName, roleIndex, managerIndex], (err, results) => {
-    //                 if (err) {
-    //                     console.log(err);
-    //                 }
-    //                 console.log('Employee added successfully.')
-    //                 mainMenu();
-    //             });
-
-    //             mainMenu();
-    //         })
-    // })
 }
 
 function updateEmployee() {
-
-    db.query('SELECT * FROM employees', (err, results) => {
+    db.query('SELECT id, CONCAT(first_name, \' \', last_name) AS full_name FROM employees', (err, employeeResults) => {
         if (err) console.log(err);
 
-        const employees = results.map(({
-            id, first_name, last_name
-        }) => ({
-            id, first_name, last_name
-        }));
+        const employees = [];
+        for (let i = 0; i < employeeResults.length; i++) {
+            employees.push(employeeResults[i].full_name);
+        }
         console.log(employees);
-        
         inquirer
             .prompt([
                 {
                     type: 'list',
-                    name: 'test',
+                    name: 'employee',
                     message: 'Update which employee?',
                     choices: employees
                 }
             ])
-            .then(data => {
-                const employee = data.first_name + ' ' + data.last_name;
-                const params = [];
-                params.push(employee);
-
-                db.query('SELECT * FROM roles', (err, results) => {
+            .then((employeeData) => {
+                db.query('SELECT * FROM roles', (err, roleResults) => {
                     if (err) console.log(err);
 
-                    const roles = results.map(({
-                        id, title
-                    }) => ({
-                        name: title, value: id
-                    }));
+                    const roles = [];
+                    for (let i = 0; i < roleResults.length; i++) {
+                        roles.push(roleResults[i].title);
+                    }
 
                     inquirer
                         .prompt([
@@ -326,18 +280,22 @@ function updateEmployee() {
                                 choices: roles
                             }
                         ])
-                        .then(data => {
-                            const role = data.role;
-                            params.push(role);
+                        .then(roleData => {
+                            let employeeIndex;
+                            for (let i = 0; i < employees.length; i++) {
+                                if (employees[i] === employeeData.employee) {
+                                    employeeIndex = employeeResults[i].id;
+                                }
+                            }
 
-                            const employee = params[0];
-                            params[0] = role;
-                            params[1] = employee;
+                            let roleIndex;
+                            for (let i = 0; i < roles.length; i++) {
+                                if (roles[i] === roleData.role) {
+                                    roleIndex = roleResults[i].id;
+                                }
+                            }
                             
-                            const query = 'UPDATE employee ' +
-                                          'SET role_id = ? '
-                                          'WHERE id = ?';
-                            db.query(query, params, (err, results) => {
+                            db.query('UPDATE employees SET role_id = ? WHERE id = ?', [roleIndex, employeeIndex], (err, results) => {
                                 if (err) console.log(err);
                                 console.log("Employee updated successfully.");
 
