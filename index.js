@@ -81,7 +81,7 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    const query = 'SELECT employees.first_name, employees.last_name, roles.title, departments.name, roles.salary ' +
+    const query = 'SELECT employees.first_name, employees.last_name, roles.title, departments.name, roles.salary, employees.manager_id ' +
                   'FROM employees ' +
                   'JOIN roles ON employees.role_id = roles.id ' +
                   'JOIN departments ON roles.department_id = departments.id'
@@ -120,7 +120,7 @@ function addRole() {
     db.query('SELECT * FROM departments', (err, results) => {
         if (err) console.log(err);
         
-        let departments = [];
+        const departments = [];
         for (let i = 0; i < results.length; i++) {
             departments.push(results[i]);
         }
@@ -165,94 +165,121 @@ function addRole() {
 }
 
 function addEmployee() {
-    db.query('SELECT * FROM roles; SELECT id, CONCAT(first_name, \' \', last_name) AS full_name FROM employees;', (err, results) => {
+    db.query ('SELECT * FROM roles', (err, roleResults) => {
         if (err) console.log(err);
-        
-        let roles = [];
-        for (let i = 0; i < results[0].length; i++) {
-            roles.push(results[0][i].title);
+
+        const roles = [];
+        for (let i = 0; i < roleResults.length; i++) {
+            roles.push(roleResults[i].title);
         }
 
-        let employees = [];
-        for (let y = 0; y < results[1].length; y++) {
-            employees.push(results[1][y].full_name);
-        } 
+        db.query('SELECT id, CONCAT(first_name, \' \', last_name) AS full_name FROM employees', (err, employeeResults) => {
+            if (err) console.log(err);
 
-        // const roles = results[0].map(({
-        //     title
-        // }) => ({
-        //     title
-        // }));
-        // console.log(roles);
-        
-        // const employees = results[1].map(({
-        //     full_name
-        // }) => ({
-        //     full_name
-        // }));
-        // console.log(employees);
+            const employees = [];
+            for (let i = 0; i < employeeResults.length; i++) {
+                employees.push(employeeResults[i].full_name);
+            }
 
-        inquirer
-            .prompt([
-                {
-                    type: 'input',
-                    name: 'firstName',
-                    message: 'Enter the new employee\'s first name:'
-                },
-                {
-                    type: 'input',
-                    name: 'lastName',
-                    message: 'Enter the new employee\'s last name:'
-                },
-                {
-                    type: 'list',
-                    name: 'role',
-                    message: 'Choose the new employee\'s role:',
-                    choices: roles
-                },
-                {
-                    type: 'list',
-                    name: 'manager',
-                    message: 'Choose a manager for the new employee:',
-                    choices: employees
-                }
-            ])
-            .then((data) => {
-                let roleIndex;
-                let managerIndex;
-                
-                if (data.manager === "No Manager") {
-                    managerIndex = null;
-                }
-                else {
-                    for (let i = 0; i < roles.length; i++)
+            const managerChoices = [];
+            managerChoices.push("No Manager");
+            for (let i = 0; i < employees.length; i++) {
+                managerChoices.push(employees[i]);
+            }
+            
+            inquirer
+                .prompt([
                     {
-                        if (roles[i].title === data.role) {
-                            roleIndex = i+1;
+                        type: 'input',
+                        name: 'firstName',
+                        message: 'Enter the new employee\'s first name:'
+                    },
+                    {
+                        type: 'input',
+                        name: 'lastName',
+                        message: 'Enter the new employee\'s last name:'
+                    },
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: 'Choose the new employee\'s role:',
+                        choices: roles
+                    },
+                    {
+                        type: 'list',
+                        name: 'manager',
+                        message: 'Choose the new employee\'s manager:',
+                        choices: managerChoices
+                    }
+                ])
+                .then((data) => {
+                    let roleIndex;
+                    for (let i = 0; i < roles.length; i++) {
+                        if (roles[i] === data.role) {
+                            roleIndex = roleResults[i].id;
                         }
                     }
 
-                    for (let i = 0; i < employees.length; i++)
-                    {
-                        if (employees[i].full_name === data.firstName + " " + data.lastName)
-                        {
-                            managerIndex = i+1;
-                        }
-                    }  
-                }
-
-                db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`,
-                        [data.firstName, data.lastName, roleIndex, managerIndex], (err, results) => {
-                    if (err) {
-                        console.log(err);
+                    let managerIndex;
+                    if (data.manager === "No Manager") {
+                        managerIndex = null;
                     }
-                    console.log('Employee added successfully.')
-                    mainMenu();
-                });
+                    else {
+                        for (let i = 0; i < employees.length; i++) {
+                            if (employees[i] === data.manager) {
+                                managerIndex = employeeResults[i].id;
+                            }
+                        }
+                    }
 
-                mainMenu();
-            })
+                    const sql = 'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
+                    db.query(sql, [data.firstName, data.lastName, roleIndex, managerIndex], (err, results) => {
+                        if (err) console.log(err);
+
+                        console.log('Employee added successfully.');
+                        mainMenu();
+                    });
+                })
+        })
     })
+
+    
+    //         .then((data) => {
+    //             let roleIndex;
+    //             let managerIndex;
+                
+    //             if (data.manager === "No Manager") {
+    //                 managerIndex = null;
+    //             }
+    //             else {
+    //                 for (let i = 0; i < roles.length; i++)
+    //                 {
+    //                     if (roles[i].title === data.role) {
+    //                         roleIndex = i+1;
+    //                     }
+    //                 }
+
+    //                 for (let i = 0; i < employees.length; i++)
+    //                 {
+    //                     if (employees[i].full_name === data.firstName + " " + data.lastName)
+    //                     {
+    //                         managerIndex = i+1;
+    //                     }
+    //                 }  
+    //             }
+
+    //             db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`,
+    //                     [data.firstName, data.lastName, roleIndex, managerIndex], (err, results) => {
+    //                 if (err) {
+    //                     console.log(err);
+    //                 }
+    //                 console.log('Employee added successfully.')
+    //                 mainMenu();
+    //             });
+
+    //             mainMenu();
+    //         })
+    // })
 }
 
 function updateEmployee() {
